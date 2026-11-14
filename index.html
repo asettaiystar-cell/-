@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="kk" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Фулбоди Жаттығу Күнделігі — 3 Күн</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        gym: {
+                            bg: '#0b0f17',
+                            card: '#151c28',
+                            border: '#232f42',
+                            accent: '#10b981',
+                            accentHover: '#059669',
+                            amber: '#f59e0b',
+                            blue: '#3b82f6'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0b0f17;
+            color: #f3f4f6;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* Hide number input spinners for clean mobile UI */
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+        .set-row-done {
+            background: rgba(16, 185, 129, 0.12);
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+        @keyframes pulse-border {
+            0%, 100% { border-color: rgba(16, 185, 129, 0.8); }
+            50% { border-color: rgba(16, 185, 129, 0.2); }
+        }
+        .timer-active {
+            animation: pulse-border 1.5s infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-32 selection:bg-emerald-500 selection:text-white">
+
+    <!-- Top Header -->
+    <header class="sticky top-0 z-30 bg-[#0b0f17]/95 backdrop-blur-md border-b border-gym-border px-4 py-3">
+        <div class="max-w-xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center shadow-lg shadow-emerald-900/40">
+                    <i class="fa-solid fa-dumbbell text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-white leading-tight">
+                        ФУЛБОДИ КҮНДЕЛІГІ
+                    </h1>
+                    <p class="text-xs text-gray-400 flex items-center gap-1.5">
+                        <span id="syncStatusDot" class="w-2 h-2 rounded-full bg-amber-400 inline-block"></span>
+                        <span id="syncStatusText">Деректер жүктелуде...</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Auto-start timer toggle -->
+            <button id="soundToggleBtn" onclick="window.toggleSound()" class="p-2.5 rounded-xl bg-gym-card border border-gym-border text-gray-300 hover:text-white active:scale-95 transition" title="Дыбыс белгісі">
+                <i id="soundIcon" class="fa-solid fa-volume-high text-emerald-400"></i>
+            </button>
+        </div>
+
+        <!-- Day Selector Tabs -->
+        <div class="max-w-xl mx-auto mt-3 grid grid-cols-4 gap-1.5 bg-gym-card p-1.5 rounded-2xl border border-gym-border">
+            <button onclick="window.selectTab('day1')" id="tab-day1" class="tab-btn py-2.5 px-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex flex-col items-center justify-center gap-0.5 bg-emerald-600 text-white shadow-md">
+                <span>1-КҮН</span>
+                <span class="text-[10px] font-normal opacity-85 hidden sm:inline">База + Шраги</span>
+            </button>
+            <button onclick="window.selectTab('day2')" id="tab-day2" class="tab-btn py-2.5 px-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex flex-col items-center justify-center gap-0.5 text-gray-400 hover:text-white">
+                <span>2-КҮН</span>
+                <span class="text-[10px] font-normal opacity-75 hidden sm:inline">Гантель + Мойын</span>
+            </button>
+            <button onclick="window.selectTab('day3')" id="tab-day3" class="tab-btn py-2.5 px-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex flex-col items-center justify-center gap-0.5 text-gray-400 hover:text-white">
+                <span>3-КҮН</span>
+                <span class="text-[10px] font-normal opacity-75 hidden sm:inline">Наклон + Тяга</span>
+            </button>
+            <button onclick="window.selectTab('history')" id="tab-history" class="tab-btn py-2.5 px-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex flex-col items-center justify-center gap-0.5 text-gray-400 hover:text-white">
+                <span>ТАРИХ</span>
+                <span class="text-[10px] font-normal opacity-75 hidden sm:inline">Прогресс</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-xl mx-auto px-3 sm:px-4 pt-4">
+
+        <!-- Day Summary Banner -->
+        <div id="dayBanner" class="mb-4 p-3.5 rounded-2xl bg-gradient-to-r from-emerald-950/70 via-gym-card to-gym-card border border-emerald-800/40 flex items-center justify-between">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span id="dayTitleBadge" class="px-2.5 py-0.5 text-xs font-extrabold uppercase rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                        1-КҮН БАҒДАРЛАМАСЫ
+                    </span>
+                    <span id="dayProgressText" class="text-xs text-gray-400 font-medium">0/14 подход</span>
+                </div>
+                <p id="daySubtitle" class="text-xs text-gray-300 mt-1">
+                    Ауыр базалық жим, приседания, жоғарғы блок және трапеция
+                </p>
+            </div>
+            <button onclick="window.resetCurrentDayChecks()" class="text-xs text-gray-400 hover:text-white bg-gray-800/80 hover:bg-gray-700 px-3 py-2 rounded-xl border border-gray-700 transition flex items-center gap-1.5 shrink-0" title="Белгілерді тазалау">
+                <i class="fa-solid fa-rotate-right"></i>
+                <span class="hidden sm:inline">Жаңа жаттығу</span>
+            </button>
+        </div>
+
+        <!-- Exercises List View -->
+        <div id="workoutView" class="space-y-4">
+            <!-- Dynamically populated by JS -->
+        </div>
+
+        <!-- Save Full Day Button -->
+        <div id="saveDayContainer" class="mt-6 mb-4">
+            <button onclick="window.saveEntireDayWorkout()" class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-extrabold text-base shadow-lg shadow-emerald-950/60 active:scale-[0.99] transition flex items-center justify-center gap-2.5">
+                <i class="fa-solid fa-floppy-disk text-lg"></i>
+                <span id="saveDayBtnText">1-КҮНДІК ЖАТТЫҒУДЫ САҚТАУ</span>
+            </button>
+            <p class="text-center text-xs text-gray-400 mt-2">
+                Сақталған салмақтар келесі жаттығуда автоматты түрде шығып тұрады
+            </p>
+        </div>
+
+        <!-- History & Progress View (Hidden by default) -->
+        <div id="historyView" class="hidden space-y-6">
+            <!-- Personal Records / Current Working Weights Card -->
+            <div class="bg-gym-card border border-gym-border rounded-2xl p-4">
+                <h2 class="text-base font-extrabold text-white flex items-center gap-2 mb-3">
+                    <i class="fa-solid fa-trophy text-amber-400"></i>
+                    Қазіргі жұмыс салмақтарыңыз (Прогресс)
+                </h2>
+                <p class="text-xs text-gray-400 mb-4">
+                    Әр жаттығу бойынша соңғы сақталған ең жоғарғы салмақ пен келесі мақсат:
+                </p>
+                <div id="prListContainer" class="space-y-2.5">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+
+            <!-- Workout Log History -->
+            <div class="bg-gym-card border border-gym-border rounded-2xl p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-base font-extrabold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left text-emerald-400"></i>
+                        Сақталған жаттығулар тарихы
+                    </h2>
+                    <span id="totalWorkoutsCount" class="text-xs px-2.5 py-1 rounded-lg bg-gray-800 text-gray-300 font-semibold">
+                        0 жаттығу
+                    </span>
+                </div>
+                <div id="historyLogsContainer" class="space-y-3">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Sticky Bottom Rest Timer Bar -->
+    <div id="restTimerBar" class="fixed bottom-0 left-0 right-0 z-40 bg-[#111722]/95 backdrop-blur-md border-t border-gym-border px-3 py-2.5 shadow-2xl">
+        <div class="max-w-xl mx-auto flex items-center justify-between gap-2">
+            <!-- Timer Display -->
+            <div class="flex items-center gap-2.5">
+                <div id="timerBadge" class="w-11 h-11 rounded-xl bg-gray-800 border border-gray-700 flex items-center justify-center font-mono font-extrabold text-base text-emerald-400 shrink-0">
+                    <span id="timerDisplay">00:00</span>
+                </div>
+                <div class="leading-tight">
+                    <div class="text-xs font-bold text-white flex items-center gap-1">
+                        <span>Демалыс таймері</span>
+                    </div>
+                    <div id="timerStatusSub" class="text-[11px] text-gray-400">
+                        Уақытты таңдаңыз (1.5 - 3 мин)
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Timer Buttons -->
+            <div class="flex items-center gap-1.5">
+                <button onclick="window.startRestTimer(90)" class="px-2.5 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 active:scale-95 text-xs font-bold text-gray-200 border border-gray-700 transition">
+                    1:30
+                </button>
+                <button onclick="window.startRestTimer(120)" class="px-2.5 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 active:scale-95 text-xs font-bold text-gray-200 border border-gray-700 transition">
+                    2:00
+                </button>
+                <button onclick="window.startRestTimer(180)" class="px-2.5 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 active:scale-95 text-xs font-bold text-gray-200 border border-gray-700 transition">
+                    3:00
+                </button>
+                <button onclick="window.stopRestTimer()" id="stopTimerBtn" class="hidden px-2.5 py-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/30 text-xs font-bold transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Edit Exercise Modal -->
+    <div id="editModal" class="fixed inset-0 z-50 hidden bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-gym-card border border-gym-border rounded-2xl max-w-md w-full p-5 shadow-2xl">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-extrabold text-white">Жаттығуды өзгерту</h3>
+                <button onclick="window.closeEditModal()" class="text-gray-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Жаттығу атауы</label>
+                    <input id="editExName" type="text" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Подход саны</label>
+                        <input id="editExSets" type="number" min="1" max="10" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Мақсатты қайталау (мыс: 8-10)</label>
+                        <input id="editExReps" type="text" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Бұлшықет тобы / Ескертпе</label>
+                    <input id="editExNote" type="text" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+                </div>
+            </div>
+            <div class="flex items-center justify-end gap-2 mt-5">
+                <button onclick="window.closeEditModal()" class="px-4 py-2.5 rounded-xl bg-gray-800 text-gray-300 text-xs font-bold hover:bg-gray-700">
+                    Болдырмау
+                </button>
+                <button onclick="window.confirmEditExercise()" class="px-5 py-2.5 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-500">
+                    Сақтау
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Toast Notification -->
+    <div id="toastContainer" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 pointer-events-none transition-all duration-300 opacity-0 -translate-y-2">
+        <div id="toastBox" class="bg-emerald-600 text-white px-4 py-2.5 rounded-xl shadow-xl border border-emerald-400/30 flex items-center gap-2 text-xs sm:text-sm font-bold">
+            <i id="toastIcon" class="fa-solid fa-circle-check"></i>
+            <span id="toastText">Сақталды!</span>
+        </div>
+    </div>
+
+    <!-- Firebase SDK & Application Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // ==========================================
+        // 1. DEFAULT 3-DAY WORKOUT PROGRAM DATA
+        // ==========================================
+        const DEFAULT_PROGRAM = {
+            day1: {
+                id: 'day1',
+                title: '1-КҮН БАҒДАРЛАМАСЫ',
+                subtitle: 'Ауыр базалық жим, приседания, жоғарғы блок және шраги',
+                exercises: [
+                    {
+                        id: 'd1_ex1',
+                        name: 'Жим лежа (штанга)',
+                        muscle: 'Кеуде (ортаңғы/жалпы масса)',
+                        targetSets: 4,
+                        targetReps: '6-8',
+                        defaultReps: 8,
+                        stepKg: 2.5
+                    },
+                    {
+                        id: 'd1_ex2',
+                        name: 'Приседания (штангамен)',
+                        muscle: 'Аяқ (алдыңғы сан және жалпы күш)',
+                        targetSets: 3,
+                        targetReps: '8-10',
+                        defaultReps: 10,
+                        stepKg: 2.5
+                    },
+                    {
+                        id: 'd1_ex3',
+                        name: 'Тяга верхнего блока',
+                        muscle: 'Арқа (ені / қанаттар)',
+                        targetSets: 3,
+                        targetReps: '10-12',
+                        defaultReps: 10,
+                        stepKg: 2.5
+                    },
+                    {
+                        id: 'd1_ex4',
+                        name: 'Шраги (штанга/гантель)',
+                        muscle: 'Мойын негізі / Трапеция',
+                        targetSets: 4,
+                        targetReps: '10-12',
+                        defaultReps: 12,
+                        stepKg: 2.5
+                    }
+                ]
+            },
+            day2: {
+                id: 'day2',
+                title: '2-КҮН БАҒДАРЛАМАСЫ',
+                subtitle: 'Гантельмен кеуде, аяқ тренажері, еңкейіп штанга тарту және мойын',
+                exercises: [
+                    {
+                        id: 'd2_ex1',
+                        name: 'Грудь с гантелями',
+                        muscle: 'Кеуде (созылуы және форма)',
+                        targetSets: 3,
+                        targetReps: '10-12',
+                        defaultReps: 10,
+                        stepKg: 2
+                    },
+                    {
+                        id: 'd2_ex2',
+                        name: 'Тренажер для ног',
+                        muscle: 'Аяқ (белге салмақ түсірмей)',
+                        targetSets: 3,
+                        targetReps: '10-12',
+                        defaultReps: 12,
+                        stepKg: 5
+                    },
+                    {
+                        id: 'd2_ex3',
+                        name: 'Тяга штанги (в наклоне)',
+                        muscle: 'Арқа (қалыңдығы)',
+                        targetSets: 3,
+                        targetReps: '10-12',
+                        defaultReps: 10,
+                        stepKg: 2.5
+                    },
+                    {
+                        id: 'd2_ex4',
+                        name: 'Упражнение для шеи (Мойын)',
+                        muscle: 'Мойын (жатып блинмен алға/артқа)',
+                        targetSets: 3,
+                        targetReps: '15-20',
+                        defaultReps: 15,
+                        stepKg: 1
+                    }
+                ]
+            },
+            day3: {
+                id: 'day3',
+                title: '3-КҮН БАҒДАРЛАМАСЫ',
+                subtitle: 'Жоғарғы кеуде (30-45°), мертвая тяга, горизонтальды блок және шраги',
+                exercises: [
+                    {
+                        id: 'd3_ex1',
+                        name: 'Наклонный жим (30-45°)',
+                        muscle: 'Жоғарғы кеуде (дөңес форма үшін)',
+                        targetSets: 4,
+                        targetReps: '8-10',
+                        defaultReps: 8,
+                        stepKg: 2.5
+                    },
+                    {
+                        id: 'd3_ex2',
+                        name: 'Мертвая тяга',
+                        muscle: 'Аяқтың артқы бөлігі және бел',
+                        targetSets: 3,
+                        targetReps: '12-15',
+                        defaultReps: 12,
+                        stepKg: 2.5
+                    },
+                    {
+                        id: 'd3_ex3',
+                        name: 'Тяга горизонтального блока',
+                        muscle: 'Арқаның ортаңғы бөлігі',
+                        targetSets: 3,
+                        targetReps: '10-12',
+                        defaultReps: 12,
+                        stepKg: 2.5
+                    },
+                    {
+                        id: 'd3_ex4',
+                        name: 'Шраги',
+                        muscle: 'Мойын / Трапецияны бекіту',
+                        targetSets: 3,
+                        targetReps: '15-20',
+                        defaultReps: 15,
+                        stepKg: 2.5
+                    }
+                ]
+            }
+        };
+
+        // ==========================================
+        // 2. APPLICATION STATE (In-Memory + Cloud)
+        // ==========================================
+        let currentTab = 'day1';
+        let programData = JSON.parse(JSON.stringify(DEFAULT_PROGRAM));
+        // Stores last saved result per exercise ID: { weight: number, reps: number, sets: [{weight, reps, done}], date: string }
+        let lastExerciseStats = {};
+        // Current active session sets per exercise ID: { [exId]: [ { weight, reps, done } ] }
+        let currentSessionSets = {};
+        // Workout history logs: array of { id, dayId, dayTitle, dateStr, timestamp, exercises: [...] }
+        let workoutLogs = [];
+
+        // Edit Modal state
+        let editingExInfo = null;
+
+        // Timer & Audio state
+        let timerInterval = null;
+        let timerRemainingSeconds = 0;
+        let soundEnabled = true;
+
+        // Firebase variables
+        let db = null;
+        let auth = null;
+        let currentUser = null;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'fullbody-kz-tracker';
+
+        // Initialize session sets from program structure
+        function initSessionSets() {
+            ['day1', 'day2', 'day3'].forEach(dayKey => {
+                programData[dayKey].exercises.forEach(ex => {
+                    const lastStat = lastExerciseStats[ex.id];
+                    const existingSets = currentSessionSets[ex.id];
+                    const count = ex.targetSets || 3;
+                    const newSets = [];
+                    for (let i = 0; i < count; i++) {
+                        if (existingSets && existingSets[i]) {
+                            newSets.push(existingSets[i]);
+                        } else if (lastStat && lastStat.sets && lastStat.sets[i]) {
+                            newSets.push({
+                                weight: lastStat.sets[i].weight,
+                                reps: lastStat.sets[i].reps,
+                                done: false
+                            });
+                        } else {
+                            newSets.push({
+                                weight: lastStat ? lastStat.weight : 20,
+                                reps: lastStat ? lastStat.reps : ex.defaultReps,
+                                done: false
+                            });
+                        }
+                    }
+                    currentSessionSets[ex.id] = newSets;
+                });
+            });
+        }
+
+        // Pre-populate initial session sets before Firebase loads
+        initSessionSets();
+
+        // ==========================================
+        // 3. FIREBASE INITIALIZATION & SYNC
+        // ==========================================
+        async function initFirebase() {
+            const dotEl = document.getElementById('syncStatusDot');
+            const textEl = document.getElementById('syncStatusText');
+
+            try {
+                if (typeof __firebase_config === 'undefined' || !__firebase_config) {
+                    dotEl.className = 'w-2 h-2 rounded-full bg-emerald-400 inline-block';
+                    textEl.textContent = 'Жергілікті режим (Дайын)';
+                    renderCurrentView();
+                    return;
+                }
+
+                const firebaseConfig = JSON.parse(__firebase_config);
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                // RULE 3: Auth Before Queries
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                onAuthStateChanged(auth, (user) => {
+                    currentUser = user;
+                    if (user) {
+                        dotEl.className = 'w-2 h-2 rounded-full bg-emerald-400 inline-block';
+                        textEl.textContent = 'Бұлттық сақтау қосулы';
+                        setupFirestoreListeners(user.uid);
+                    }
+                });
+            } catch (err) {
+                console.error("Firebase init error:", err);
+                dotEl.className = 'w-2 h-2 rounded-full bg-emerald-400 inline-block';
+                textEl.textContent = 'Автономды режим';
+                renderCurrentView();
+            }
+        }
+
+        function setupFirestoreListeners(userId) {
+            if (!currentUser || !db) return;
+
+            // 1. Listen to user's saved state (program customization & latest exercise weights)
+            const stateDocRef = doc(db, 'artifacts', appId, 'users', userId, 'workoutData', 'userState');
+            onSnapshot(stateDocRef, (snap) => {
+                if (snap.exists()) {
+                    const data = snap.data();
+                    if (data.programDataJson) {
+                        try {
+                            programData = JSON.parse(data.programDataJson);
+                        } catch (e) {}
+                    }
+                    if (data.lastExerciseStatsJson) {
+                        try {
+                            lastExerciseStats = JSON.parse(data.lastExerciseStatsJson);
+                        } catch (e) {}
+                    }
+                    // Update current session inputs with saved weights where sets aren't already checked
+                    ['day1', 'day2', 'day3'].forEach(dayKey => {
+                        programData[dayKey].exercises.forEach(ex => {
+                            const lastStat = lastExerciseStats[ex.id];
+                            if (lastStat) {
+                                const count = ex.targetSets || 3;
+                                if (!currentSessionSets[ex.id] || currentSessionSets[ex.id].length !== count) {
+                                    currentSessionSets[ex.id] = [];
+                                }
+                                for (let i = 0; i < count; i++) {
+                                    const currentSet = currentSessionSets[ex.id][i];
+                                    if (!currentSet || !currentSet.done) {
+                                        const savedSet = (lastStat.sets && lastStat.sets[i]) ? lastStat.sets[i] : lastStat;
+                                        currentSessionSets[ex.id][i] = {
+                                            weight: savedSet.weight ?? lastStat.weight ?? 20,
+                                            reps: savedSet.reps ?? lastStat.reps ?? ex.defaultReps,
+                                            done: currentSet ? currentSet.done : false
+                                        };
+                                    }
+                                }
+                            }
+                        });
+                    });
+                    renderCurrentView();
+                } else {
+                    renderCurrentView();
+                }
+            }, (error) => {
+                console.error("Error listening to userState:", error);
+            });
+
+            // 2. Listen to workout logs collection (RULE 1 & RULE 2 compliant)
+            const logsColRef = collection(db, 'artifacts', appId, 'users', userId, 'workoutLogs');
+            onSnapshot(logsColRef, (snapshot) => {
+                const logs = [];
+                snapshot.forEach(docSnap => {
+                    const d = docSnap.data();
+                    logs.push({
+                        id: docSnap.id,
+                        dayId: d.dayId,
+                        dayTitle: d.dayTitle,
+                        dateStr: d.dateStr,
+                        timestamp: d.timestamp || 0,
+                        exercises: d.exercisesJson ? JSON.parse(d.exercisesJson) : []
+                    });
+                });
+                // Sort in JS memory descending by timestamp
+                logs.sort((a, b) => b.timestamp - a.timestamp);
+                workoutLogs = logs;
+                if (currentTab === 'history') {
+                    renderHistoryView();
+                }
+            }, (error) => {
+                console.error("Error listening to workoutLogs:", error);
+            });
+        }
+
+        async function persistStateToCloud() {
+            if (!currentUser || !db) return;
+            try {
+                const stateDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'workoutData', 'userState');
+                await setDoc(stateDocRef, {
+                    programDataJson: JSON.stringify(programData),
+                    lastExerciseStatsJson: JSON.stringify(lastExerciseStats),
+                    updatedAt: Date.now()
+                });
+            } catch (e) {
+                console.error("Save state error:", e);
+            }
+        }
+
+        // ==========================================
+        // 4. UI RENDERING FUNCTIONS
+        // ==========================================
+        function formatDateKazakh(dateObj) {
+            const d = String(dateObj.getDate()).padStart(2, '0');
+            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const y = dateObj.getFullYear();
+            const h = String(dateObj.getHours()).padStart(2, '0');
+            const min = String(dateObj.getMinutes()).padStart(2, '0');
+            return `${d}.${m}.${y} (${h}:${min})`;
+        }
+
+        function getProgressiveAdvice(ex, lastStat) {
+            if (!lastStat || !lastStat.weight) {
+                return {
+                    badgeText: 'Алғашқы жаттығу: жұмыс салмағыңызды жазып сақтаңыз',
+                    badgeColor: 'text-gray-400 bg-gray-800/80 border-gray-700'
+                };
+            }
+            const nextWeight = Number(lastStat.weight) + (ex.stepKg || 2.5);
+            return {
+                badgeText: `Мақсат: ${nextWeight} кг көріңіз немесе ${lastStat.weight} кг × ${Number(lastStat.reps) + 1} рет`,
+                badgeColor: 'text-amber-300 bg-amber-500/10 border-amber-500/30'
+            };
+        }
+
+        function renderCurrentView() {
+            // Update tab styles
+            ['day1', 'day2', 'day3', 'history'].forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                if (!btn) return;
+                if (t === currentTab) {
+                    btn.className = "tab-btn py-2.5 px-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex flex-col items-center justify-center gap-0.5 bg-emerald-600 text-white shadow-md";
+                } else {
+                    btn.className = "tab-btn py-2.5 px-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex flex-col items-center justify-center gap-0.5 text-gray-400 hover:text-white";
+                }
+            });
+
+            const workoutView = document.getElementById('workoutView');
+            const historyView = document.getElementById('historyView');
+            const dayBanner = document.getElementById('dayBanner');
+            const saveDayContainer = document.getElementById('saveDayContainer');
+
+            if (currentTab === 'history') {
+                workoutView.classList.add('hidden');
+                dayBanner.classList.add('hidden');
+                saveDayContainer.classList.add('hidden');
+                historyView.classList.remove('hidden');
+                renderHistoryView();
+            } else {
+                workoutView.classList.remove('hidden');
+                dayBanner.classList.remove('hidden');
+                saveDayContainer.classList.remove('hidden');
+                historyView.classList.add('hidden');
+                renderDayWorkout(currentTab);
+            }
+        }
+
+        function renderDayWorkout(dayKey) {
+            const dayObj = programData[dayKey];
+            if (!dayObj) return;
+
+            document.getElementById('dayTitleBadge').textContent = dayObj.title;
+            document.getElementById('daySubtitle').textContent = dayObj.subtitle;
+            const dayNum = dayKey.replace('day', '');
+            document.getElementById('saveDayBtnText').textContent = `${dayNum}-КҮНДІК ЖАТТЫҒУДЫ САҚТАУ`;
+
+            let totalSetsCount = 0;
+            let completedSetsCount = 0;
+
+            const container = document.getElementById('workoutView');
+            container.innerHTML = '';
+
+            dayObj.exercises.forEach((ex, exIndex) => {
+                const sets = currentSessionSets[ex.id] || [];
+                totalSetsCount += sets.length;
+                completedSetsCount += sets.filter(s => s.done).length;
+
+                const lastStat = lastExerciseStats[ex.id];
+                const advice = getProgressiveAdvice(ex, lastStat);
+
+                let setsHtml = '';
+                sets.forEach((setItem, sIdx) => {
+                    const doneClass = setItem.done ? 'set-row-done' : 'bg-gray-900/70 border-gray-800';
+                    const checkBtnClass = setItem.done
+                        ? 'bg-emerald-500 text-white border-emerald-400 shadow-md shadow-emerald-950'
+                        : 'bg-gray-800 text-gray-400 border-gray-700 hover:text-white';
+
+                    setsHtml += `
+                        <div class="grid grid-cols-12 items-center gap-1.5 sm:gap-2 p-2 rounded-xl border transition-all ${doneClass}">
+                            <!-- Set Number -->
+                            <div class="col-span-2 flex items-center gap-1">
+                                <span class="w-6 h-6 rounded-lg bg-gray-800 border border-gray-700 text-xs font-extrabold text-gray-300 flex items-center justify-center">
+                                    ${sIdx + 1}
+                                </span>
+                                <span class="text-[11px] text-gray-400 hidden sm:inline">подход</span>
+                            </div>
+
+                            <!-- Weight Input with +/- steppers -->
+                            <div class="col-span-5 flex items-center bg-gray-950 border border-gray-700/80 rounded-xl p-0.5">
+                                <button type="button" onclick="window.adjustSetWeight('${ex.id}', ${sIdx}, -${ex.stepKg || 2.5})" class="w-7 h-8 flex items-center justify-center text-gray-400 hover:text-white active:scale-90 text-xs font-bold">
+                                    -
+                                </button>
+                                <div class="flex-1 text-center">
+                                    <input type="number" step="0.5" value="${setItem.weight}"
+                                        onchange="window.updateSetField('${ex.id}', ${sIdx}, 'weight', this.value)"
+                                        class="w-full bg-transparent text-center font-extrabold text-sm text-white focus:outline-none">
+                                    <span class="block text-[9px] text-gray-400 -mt-1">кг</span>
+                                </div>
+                                <button type="button" onclick="window.adjustSetWeight('${ex.id}', ${sIdx}, ${ex.stepKg || 2.5})" class="w-7 h-8 flex items-center justify-center text-emerald-400 hover:text-emerald-300 active:scale-90 text-xs font-bold">
+                                    +
+                                </button>
+                            </div>
+
+                            <!-- Reps Input with +/- steppers -->
+                            <div class="col-span-3 flex items-center bg-gray-950 border border-gray-700/80 rounded-xl p-0.5">
+                                <button type="button" onclick="window.adjustSetReps('${ex.id}', ${sIdx}, -1)" class="w-6 h-8 flex items-center justify-center text-gray-400 hover:text-white active:scale-90 text-xs font-bold">
+                                    -
+                                </button>
+                                <div class="flex-1 text-center">
+                                    <input type="number" value="${setItem.reps}"
+                                        onchange="window.updateSetField('${ex.id}', ${sIdx}, 'reps', this.value)"
+                                        class="w-full bg-transparent text-center font-extrabold text-sm text-white focus:outline-none">
+                                    <span class="block text-[9px] text-gray-400 -mt-1">рет</span>
+                                </div>
+                                <button type="button" onclick="window.adjustSetReps('${ex.id}', ${sIdx}, 1)" class="w-6 h-8 flex items-center justify-center text-emerald-400 hover:text-emerald-300 active:scale-90 text-xs font-bold">
+                                    +
+                                </button>
+                            </div>
+
+                            <!-- Complete Set Checkbox Button -->
+                            <div class="col-span-2 flex justify-end">
+                                <button type="button" onclick="window.toggleSetDone('${ex.id}', ${sIdx})" class="w-10 h-9 rounded-xl border flex items-center justify-center transition active:scale-90 ${checkBtnClass}" title="Орындалды">
+                                    <i class="fa-solid fa-check text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                const lastStatHtml = lastStat
+                    ? `<div class="flex items-center justify-between text-xs bg-emerald-950/40 border border-emerald-800/40 rounded-xl px-3 py-2">
+                           <span class="text-gray-300">
+                               <i class="fa-solid fa-clock-rotate-left text-emerald-400 mr-1"></i>
+                               Соңғы салмақ: <strong class="text-white font-extrabold">${lastStat.weight} кг × ${lastStat.reps} рет</strong>
+                           </span>
+                           <span class="text-[11px] text-gray-400">${lastStat.date ? lastStat.date.split(' ')[0] : ''}</span>
+                       </div>`
+                    : `<div class="text-xs bg-gray-900/60 border border-gray-800 rounded-xl px-3 py-2 text-gray-400">
+                           <i class="fa-solid fa-circle-info text-blue-400 mr-1"></i>
+                           Алдыңғы салмақ әлі сақталмаған
+                       </div>`;
+
+                const card = document.createElement('div');
+                card.className = "bg-gym-card border border-gym-border rounded-2xl p-4 shadow-lg";
+                card.innerHTML = `
+                    <!-- Card Header -->
+                    <div class="flex items-start justify-between gap-2 mb-2.5">
+                        <div class="flex items-start gap-2.5">
+                            <span class="w-7 h-7 rounded-lg bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                                ${exIndex + 1}
+                            </span>
+                            <div>
+                                <h3 class="text-base font-extrabold text-white leading-snug">${ex.name}</h3>
+                                <p class="text-xs text-gray-400">${ex.muscle}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <span class="px-2.5 py-1 rounded-xl bg-gray-800 border border-gray-700 text-xs font-extrabold text-emerald-400">
+                                ${ex.targetSets} × ${ex.targetReps}
+                            </span>
+                            <button onclick="window.openEditModal('${dayKey}', '${ex.id}')" class="p-1.5 text-gray-400 hover:text-white rounded-lg hover:bg-gray-800 transition" title="Өзгерту">
+                                <i class="fa-solid fa-pen-to-square text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Previous Saved Weight & Progressive Overload Tip -->
+                    <div class="space-y-1.5 mb-3">
+                        ${lastStatHtml}
+                        <div class="text-[11px] font-semibold px-3 py-1.5 rounded-xl border flex items-center gap-1.5 ${advice.badgeColor}">
+                            <i class="fa-solid fa-bolt"></i>
+                            <span>${advice.badgeText}</span>
+                        </div>
+                    </div>
+
+                    <!-- Sets List -->
+                    <div class="space-y-2 mb-3">
+                        ${setsHtml}
+                    </div>
+
+                    <!-- Card Footer Actions -->
+                    <div class="flex items-center justify-between pt-2 border-t border-gray-800/80">
+                        <div class="flex items-center gap-1.5">
+                            <button onclick="window.addSetToExercise('${dayKey}', '${ex.id}')" class="text-xs text-gray-400 hover:text-white bg-gray-800/70 hover:bg-gray-800 px-2.5 py-1.5 rounded-lg border border-gray-700/70 transition">
+                                + Подход
+                            </button>
+                            <button onclick="window.removeSetFromExercise('${dayKey}', '${ex.id}')" class="text-xs text-gray-400 hover:text-white bg-gray-800/70 hover:bg-gray-800 px-2.5 py-1.5 rounded-lg border border-gray-700/70 transition">
+                                - Подход
+                            </button>
+                        </div>
+
+                        <button onclick="window.saveSingleExercise('${dayKey}', '${ex.id}')" class="px-3.5 py-1.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 text-xs font-bold transition flex items-center gap-1.5 active:scale-95">
+                            <i class="fa-solid fa-check-double"></i>
+                            <span>Салмақты сақтау</span>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            document.getElementById('dayProgressText').textContent = `${completedSetsCount}/${totalSetsCount} подход орындалды`;
+        }
+
+        function renderHistoryView() {
+            const prList = document.getElementById('prListContainer');
+            prList.innerHTML = '';
+
+            ['day1', 'day2', 'day3'].forEach(dayKey => {
+                const dayTitle = programData[dayKey].title;
+                programData[dayKey].exercises.forEach(ex => {
+                    const stat = lastExerciseStats[ex.id];
+                    const row = document.createElement('div');
+                    row.className = "p-3 rounded-xl bg-gray-900/80 border border-gray-800 flex items-center justify-between gap-2";
+                    if (stat) {
+                        const nextW = Number(stat.weight) + (ex.stepKg || 2.5);
+                        row.innerHTML = `
+                            <div>
+                                <div class="text-xs font-bold text-white">${ex.name}</div>
+                                <div class="text-[11px] text-gray-400">${dayTitle.split(' ')[0]} • Соңғы: ${stat.date ? stat.date.split(' ')[0] : ''}</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-sm font-extrabold text-emerald-400">${stat.weight} кг × ${stat.reps}</div>
+                                <div class="text-[10px] text-amber-400">Келесі мақсат: ${nextW} кг</div>
+                            </div>
+                        `;
+                    } else {
+                        row.innerHTML = `
+                            <div>
+                                <div class="text-xs font-bold text-gray-300">${ex.name}</div>
+                                <div class="text-[11px] text-gray-500">${dayTitle.split(' ')[0]}</div>
+                            </div>
+                            <span class="text-xs text-gray-500">Жазба жоқ</span>
+                        `;
+                    }
+                    prList.appendChild(row);
+                });
+            });
+
+            const logsContainer = document.getElementById('historyLogsContainer');
+            document.getElementById('totalWorkoutsCount').textContent = `${workoutLogs.length} жаттығу`;
+
+            if (workoutLogs.length === 0) {
+                logsContainer.innerHTML = `
+                    <div class="text-center py-8 text-gray-400 text-xs">
+                        <i class="fa-solid fa-dumbbell text-2xl mb-2 text-gray-600 block"></i>
+                        Әзірге сақталған жаттығулар тарихы бос.<br>
+                        1, 2 немесе 3-күнді таңдап, салмақтарды сақтаңыз!
+                    </div>
+                `;
+                return;
+            }
+
+            logsContainer.innerHTML = '';
+            workoutLogs.forEach(log => {
+                const exRows = (log.exercises || []).map(e => {
+                    const setsSummary = (e.sets || []).map(s => `${s.weight}кг×${s.reps}`).join(', ');
+                    return `
+                        <div class="text-xs py-1 border-b border-gray-800/60 last:border-none flex items-start justify-between gap-2">
+                            <span class="text-gray-200 font-semibold">${e.name}</span>
+                            <span class="text-emerald-400 font-mono text-[11px] text-right">${setsSummary}</span>
+                        </div>
+                    `;
+                }).join('');
+
+                const item = document.createElement('div');
+                item.className = "p-3.5 rounded-xl bg-gray-900/90 border border-gray-800 space-y-2";
+                item.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 text-xs font-extrabold">
+                                ${log.dayTitle || 'Жаттығу'}
+                            </span>
+                            <span class="text-xs text-gray-400">${log.dateStr}</span>
+                        </div>
+                        <button onclick="window.deleteWorkoutLog('${log.id}')" class="text-gray-500 hover:text-red-400 p-1 text-xs transition" title="Өшіру">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                    <div class="pt-1">
+                        ${exRows}
+                    </div>
+                `;
+                logsContainer.appendChild(item);
+            });
+        }
+
+        // ==========================================
+        // 5. USER INTERACTION HANDLERS
+        // ==========================================
+        window.selectTab = function(tabName) {
+            currentTab = tabName;
+            renderCurrentView();
+        };
+
+        window.adjustSetWeight = function(exId, setIdx, delta) {
+            if (!currentSessionSets[exId] || !currentSessionSets[exId][setIdx]) return;
+            const cur = Number(currentSessionSets[exId][setIdx].weight) || 0;
+            const next = Math.max(0, Math.round((cur + delta) * 10) / 10);
+            currentSessionSets[exId][setIdx].weight = next;
+            // Also propagate weight to subsequent uncompleted sets of the same exercise for convenience
+            for (let i = setIdx + 1; i < currentSessionSets[exId].length; i++) {
+                if (!currentSessionSets[exId][i].done) {
+                    currentSessionSets[exId][i].weight = next;
+                }
+            }
+            renderCurrentView();
+        };
+
+        window.adjustSetReps = function(exId, setIdx, delta) {
+            if (!currentSessionSets[exId] || !currentSessionSets[exId][setIdx]) return;
+            const cur = Number(currentSessionSets[exId][setIdx].reps) || 0;
+            currentSessionSets[exId][setIdx].reps = Math.max(1, cur + delta);
+            renderCurrentView();
+        };
+
+        window.updateSetField = function(exId, setIdx, field, val) {
+            if (!currentSessionSets[exId] || !currentSessionSets[exId][setIdx]) return;
+            const num = Math.max(0, Number(val) || 0);
+            currentSessionSets[exId][setIdx][field] = num;
+            renderCurrentView();
+        };
+
+        window.toggleSetDone = function(exId, setIdx) {
+            if (!currentSessionSets[exId] || !currentSessionSets[exId][setIdx]) return;
+            const newState = !currentSessionSets[exId][setIdx].done;
+            currentSessionSets[exId][setIdx].done = newState;
+
+            if (newState) {
+                // Auto-start 120s rest timer when marking a set done
+                window.startRestTimer(120);
+            }
+            renderCurrentView();
+        };
+
+        window.addSetToExercise = function(dayKey, exId) {
+            const ex = programData[dayKey].exercises.find(e => e.id === exId);
+            if (!ex) return;
+            const sets = currentSessionSets[exId] || [];
+            const lastSet = sets[sets.length - 1] || { weight: 20, reps: ex.defaultReps };
+            sets.push({
+                weight: lastSet.weight,
+                reps: lastSet.reps,
+                done: false
+            });
+            currentSessionSets[exId] = sets;
+            ex.targetSets = sets.length;
+            renderCurrentView();
+        };
+
+        window.removeSetFromExercise = function(dayKey, exId) {
+            const ex = programData[dayKey].exercises.find(e => e.id === exId);
+            if (!ex) return;
+            const sets = currentSessionSets[exId] || [];
+            if (sets.length <= 1) return;
+            sets.pop();
+            currentSessionSets[exId] = sets;
+            ex.targetSets = sets.length;
+            renderCurrentView();
+        };
+
+        window.resetCurrentDayChecks = function() {
+            const dayObj = programData[currentTab];
+            if (!dayObj) return;
+            dayObj.exercises.forEach(ex => {
+                if (currentSessionSets[ex.id]) {
+                    currentSessionSets[ex.id].forEach(s => s.done = false);
+                }
+            });
+            renderCurrentView();
+            showToast('Подход белгілері жаңартылды!');
+        };
+
+        // Save a single exercise's working weight immediately
+        window.saveSingleExercise = async function(dayKey, exId) {
+            const ex = programData[dayKey].exercises.find(e => e.id === exId);
+            const sets = currentSessionSets[exId] || [];
+            if (!ex || sets.length === 0) return;
+
+            // Find best set (highest weight)
+            let bestSet = sets[0];
+            sets.forEach(s => {
+                if (Number(s.weight) >= Number(bestSet.weight)) {
+                    bestSet = s;
+                }
+            });
+
+            const nowStr = formatDateKazakh(new Date());
+            lastExerciseStats[exId] = {
+                weight: Number(bestSet.weight),
+                reps: Number(bestSet.reps),
+                sets: sets.map(s => ({ weight: Number(s.weight), reps: Number(s.reps), done: s.done })),
+                date: nowStr
+            };
+
+            renderCurrentView();
+            showToast(`${ex.name}: ${bestSet.weight} кг сақталды!`);
+            await persistStateToCloud();
+        };
+
+        // Save the entire day workout and add to history log
+        window.saveEntireDayWorkout = async function() {
+            const dayObj = programData[currentTab];
+            if (!dayObj) return;
+
+            const now = new Date();
+            const nowStr = formatDateKazakh(now);
+            const logExercises = [];
+
+            dayObj.exercises.forEach(ex => {
+                const sets = currentSessionSets[ex.id] || [];
+                if (sets.length > 0) {
+                    let bestSet = sets[0];
+                    sets.forEach(s => {
+                        if (Number(s.weight) >= Number(bestSet.weight)) {
+                            bestSet = s;
+                        }
+                    });
+                    lastExerciseStats[ex.id] = {
+                        weight: Number(bestSet.weight),
+                        reps: Number(bestSet.reps),
+                        sets: sets.map(s => ({ weight: Number(s.weight), reps: Number(s.reps), done: s.done })),
+                        date: nowStr
+                    };
+                    logExercises.push({
+                        id: ex.id,
+                        name: ex.name,
+                        sets: sets.map(s => ({ weight: Number(s.weight), reps: Number(s.reps) }))
+                    });
+                }
+            });
+
+            const newLogEntry = {
+                id: 'local_' + Date.now(),
+                dayId: currentTab,
+                dayTitle: dayObj.title.replace(' БАҒДАРЛАМАСЫ', ''),
+                dateStr: nowStr,
+                timestamp: Date.now(),
+                exercises: logExercises
+            };
+
+            workoutLogs.unshift(newLogEntry);
+            renderCurrentView();
+            showToast(`${newLogEntry.dayTitle} толық сақталды! Жарайсыз!`);
+
+            await persistStateToCloud();
+
+            if (currentUser && db) {
+                try {
+                    const logsColRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'workoutLogs');
+                    await addDoc(logsColRef, {
+                        dayId: newLogEntry.dayId,
+                        dayTitle: newLogEntry.dayTitle,
+                        dateStr: newLogEntry.dateStr,
+                        timestamp: newLogEntry.timestamp,
+                        exercisesJson: JSON.stringify(newLogEntry.exercises)
+                    });
+                } catch (e) {
+                    console.error("Error adding workout log to Firestore:", e);
+                }
+            }
+        };
+
+        window.deleteWorkoutLog = async function(logId) {
+            workoutLogs = workoutLogs.filter(l => l.id !== logId);
+            renderHistoryView();
+            showToast('Жазба өшірілді');
+
+            if (currentUser && db && !logId.startsWith('local_')) {
+                try {
+                    const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'workoutLogs', logId);
+                    await deleteDoc(docRef);
+                } catch (e) {
+                    console.error("Delete log error:", e);
+                }
+            }
+        };
+
+        // ==========================================
+        // 6. EDIT EXERCISE MODAL
+        // ==========================================
+        window.openEditModal = function(dayKey, exId) {
+            const ex = programData[dayKey].exercises.find(e => e.id === exId);
+            if (!ex) return;
+            editingExInfo = { dayKey, exId };
+            document.getElementById('editExName').value = ex.name;
+            document.getElementById('editExSets').value = ex.targetSets;
+            document.getElementById('editExReps').value = ex.targetReps;
+            document.getElementById('editExNote').value = ex.muscle;
+            document.getElementById('editModal').classList.remove('hidden');
+        };
+
+        window.closeEditModal = function() {
+            editingExInfo = null;
+            document.getElementById('editModal').classList.add('hidden');
+        };
+
+        window.confirmEditExercise = async function() {
+            if (!editingExInfo) return;
+            const { dayKey, exId } = editingExInfo;
+            const ex = programData[dayKey].exercises.find(e => e.id === exId);
+            if (!ex) return;
+
+            const newName = document.getElementById('editExName').value.trim();
+            const newSets = Math.max(1, Math.min(10, Number(document.getElementById('editExSets').value) || 3));
+            const newReps = document.getElementById('editExReps').value.trim() || '10-12';
+            const newNote = document.getElementById('editExNote').value.trim();
+
+            if (newName) ex.name = newName;
+            ex.targetSets = newSets;
+            ex.targetReps = newReps;
+            ex.muscle = newNote;
+
+            // Adjust session sets array length
+            const curSets = currentSessionSets[exId] || [];
+            while (curSets.length < newSets) {
+                const sample = curSets[curSets.length - 1] || { weight: 20, reps: 10 };
+                curSets.push({ weight: sample.weight, reps: sample.reps, done: false });
+            }
+            if (curSets.length > newSets) {
+                curSets.length = newSets;
+            }
+            currentSessionSets[exId] = curSets;
+
+            window.closeEditModal();
+            renderCurrentView();
+            showToast('Жаттығу өзгертілді!');
+            await persistStateToCloud();
+        };
+
+        // ==========================================
+        // 7. REST TIMER & SOUND BEEP
+        // ==========================================
+        function playTimerFinishBeep() {
+            if (!soundEnabled) return;
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const playTone = (freq, start, duration) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
+                    gain.gain.setValueAtTime(0.25, ctx.currentTime + start);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + duration);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(ctx.currentTime + start);
+                    osc.stop(ctx.currentTime + start + duration);
+                };
+                playTone(660, 0, 0.18);
+                playTone(880, 0.22, 0.35);
+            } catch (e) {}
+        }
+
+        window.toggleSound = function() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('soundIcon');
+            if (soundEnabled) {
+                icon.className = 'fa-solid fa-volume-high text-emerald-400';
+                showToast('Таймер дыбысы қосылды');
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark text-gray-500';
+                showToast('Таймер дыбысы өшірілді');
+            }
+        };
+
+        function updateTimerUI() {
+            const disp = document.getElementById('timerDisplay');
+            const badge = document.getElementById('timerBadge');
+            const sub = document.getElementById('timerStatusSub');
+            const stopBtn = document.getElementById('stopTimerBtn');
+
+            const mins = String(Math.floor(timerRemainingSeconds / 60)).padStart(2, '0');
+            const secs = String(timerRemainingSeconds % 60).padStart(2, '0');
+            disp.textContent = `${mins}:${secs}`;
+
+            if (timerRemainingSeconds > 0) {
+                badge.classList.add('timer-active', 'border-emerald-500');
+                sub.textContent = 'Демалып алыңыз, келесі подходқа дайындық...';
+                sub.className = 'text-[11px] text-emerald-400 font-medium';
+                stopBtn.classList.remove('hidden');
+            } else {
+                badge.classList.remove('timer-active', 'border-emerald-500');
+                sub.textContent = 'Уақытты таңдаңыз (1.5 - 3 мин)';
+                sub.className = 'text-[11px] text-gray-400';
+                stopBtn.classList.add('hidden');
+            }
+        }
+
+        window.startRestTimer = function(seconds) {
+            if (timerInterval) clearInterval(timerInterval);
+            timerRemainingSeconds = seconds;
+            updateTimerUI();
+
+            timerInterval = setInterval(() => {
+                timerRemainingSeconds--;
+                if (timerRemainingSeconds <= 0) {
+                    timerRemainingSeconds = 0;
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                    updateTimerUI();
+                    playTimerFinishBeep();
+                    showToast('Демалыс уақыты бітті! Келесі подходқа кірісіңіз 💪');
+                } else {
+                    updateTimerUI();
+                }
+            }, 1000);
+        };
+
+        window.stopRestTimer = function() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = null;
+            timerRemainingSeconds = 0;
+            updateTimerUI();
+        };
+
+        // ==========================================
+        // 8. TOAST NOTIFICATION
+        // ==========================================
+        let toastTimeout = null;
+        function showToast(message) {
+            const container = document.getElementById('toastContainer');
+            const text = document.getElementById('toastText');
+            text.textContent = message;
+            container.classList.remove('opacity-0', '-translate-y-2');
+            container.classList.add('opacity-100', 'translate-y-0');
+
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                container.classList.remove('opacity-100', 'translate-y-0');
+                container.classList.add('opacity-0', '-translate-y-2');
+            }, 2600);
+        }
+
+        // Start app
+        window.addEventListener('DOMContentLoaded', () => {
+            renderCurrentView();
+            initFirebase();
+        });
+    </script>
+</body>
+</html>
